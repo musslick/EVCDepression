@@ -1,4 +1,5 @@
 % EVC Sim created by A.Shenhav on 3/20/13
+% extended by S. Musslick on 12/11/14
 
 classdef EVCModel < handle
     properties (SetAccess = public)
@@ -64,7 +65,7 @@ classdef EVCModel < handle
             this.useActualState = this.defUseActualState;
             this.binaryErrors = this.startBinaryErrors;
             this.id = this.defID;
-            this.System.ACC_BOLD = 0;
+            this.System.ACC_HypotheticalBOLD = 0;
             this.initLog();
             
             % assign default reward function
@@ -296,7 +297,7 @@ classdef EVCModel < handle
             if(selectState)
                 % TODO
             else
-                this.System.ACC_BOLD = this.getBOLD(overallEVC, optIntensities, this.getCCost(), this.getReconfCost(), signalCombs, combIdx(combIdxIdx), backupIntensities);
+                this.System.ACC_HypotheticalBOLD = this.getHypotheticalBOLD(overallEVC, optIntensities, this.getCCost(), this.getReconfCost(), signalCombs, combIdx(combIdxIdx), backupIntensities);
             end
             
             %% store state EVCs
@@ -431,7 +432,12 @@ classdef EVCModel < handle
        end
        
        % calculate ACC BOLD response
-       function BOLD = getBOLD(this, EVCMap, optIntensities, signalCosts, reconfigurationCosts, signalCombs, optIdx, backupIntensities)
+       %
+       % Note that function is not meant to reflect a specific prediction
+       % of the EVC theory as Shenhav et al. (2013) do not stipulate a relationship
+       % between EVC variables and dACC activity. However, the user may use this
+       % function to identify neural correlates of various EVC variables.
+       function hypotheticalBOLD = getHypotheticalBOLD(this, EVCMap, optIntensities, signalCosts, reconfigurationCosts, signalCombs, optIdx, backupIntensities)
            [ST,I] = dbstack; % track function name for debugging functions
             source = ST.name;
            
@@ -439,40 +445,40 @@ classdef EVCModel < handle
            if(isfield(this.System, 'EVCMap'))
                if(numel(this.System.EVCMap) == numel(EVCMap))
                     diffEVCMap = abs(EVCMap-this.System.EVCMap);
-                    BOLD = sum(diffEVCMap(~isnan(diffEVCMap)));
+                    hypotheticalBOLD = sum(diffEVCMap(~isnan(diffEVCMap)));
                else
                  HelperFnc.warning('Cannot calculate BOLD activity: EVCMaps don''t match.');
-                 BOLD = 0;
+                 hypotheticalBOLD = 0;
                end
            else
               EVC.HelperFnc.warning('Cannot calculate BOLD activity: No recent EVCMap.'); 
-              BOLD = 0;
+              hypotheticalBOLD = 0;
            end
            
            % 1) take signed differecne between current and recent EVCMap
            if(isfield(this.System, 'EVCMap'))
-                BOLD = [BOLD sum(EVCMap-this.System.EVCMap)];
+                hypotheticalBOLD = [hypotheticalBOLD sum(EVCMap-this.System.EVCMap)];
            else
-                BOLD = [BOLD 0];
+                hypotheticalBOLD = [hypotheticalBOLD 0];
            end
        
            % 2) take EVC of currently implemented signal
-           BOLD = [BOLD max(max(EVCMap))];
+           hypotheticalBOLD = [hypotheticalBOLD max(max(EVCMap))];
            
            % 3) take overall control intensity
-           BOLD = [BOLD sum(optIntensities)];
+           hypotheticalBOLD = [hypotheticalBOLD sum(optIntensities)];
            
            % 4) Take current costs
-           BOLD = [BOLD signalCosts(optIdx)];
+           hypotheticalBOLD = [hypotheticalBOLD signalCosts(optIdx)];
            
            % 5) Take current reconfiguration costs
-           BOLD = [BOLD reconfigurationCosts(optIdx)];
+           hypotheticalBOLD = [hypotheticalBOLD reconfigurationCosts(optIdx)];
            
            % 6) Take absolute difference between current and previous intensities
-           BOLD = [BOLD sum(abs(optIntensities-backupIntensities))];
+           hypotheticalBOLD = [hypotheticalBOLD sum(abs(optIntensities-backupIntensities))];
            
            % 7) Take signed difference between current and previous intensities
-           BOLD = [BOLD sum(optIntensities-backupIntensities)];
+           hypotheticalBOLD = [hypotheticalBOLD sum(optIntensities-backupIntensities)];
            
            
            this.System.EVCMap = EVCMap;
@@ -905,7 +911,7 @@ classdef EVCModel < handle
             this.Log.EVCs = [];
             this.Log.RTs = [];
             this.Log.ERs = [];
-            this.Log.ACC_BOLD = [];
+            this.Log.ACC_HypotheticalBOLD = [];
             this.Log.LogIdx = [];
             this.Log.stateEVCs = [];
             this.Log.stateEVs = [];
@@ -957,7 +963,7 @@ classdef EVCModel < handle
             this.Log.RTs(this.Log.LogCount,:) = RTlog;                                                                    % log array for reaction times [expected actual] 
             this.Log.actualProbs(this.Log.LogCount,:) = transpose(actualProbs);                                                      % log array for actual outcome probabilities
             this.Log.expectedProbs(this.Log.LogCount,:) = transpose(expectedProbs);                                                  % log array for actual outcome probabilities
-            this.Log.ACC_BOLD(this.Log.LogCount,:) = this.System.ACC_BOLD;                                                    % log array for ACC activity
+            this.Log.ACC_HypotheticalBOLD(this.Log.LogCount,:) = this.System.ACC_HypotheticalBOLD;                                                    % log array for ACC activity
             
             this.Log.Trials(this.Log.LogCount,1) = EVC.Trial(this.currentTrial());                                          % log array for trials
             this.Log.TrialsOrg(this.Log.LogCount,1) = EVC.Trial(this.State.ActualOrg);
