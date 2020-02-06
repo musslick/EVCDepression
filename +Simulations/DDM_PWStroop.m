@@ -339,7 +339,7 @@ classdef DDM_PWStroop < Simulations.DDMSim
            end
            rewardLevels = [0];
            
-           crossedLevels = combvec(congruencyLevels, rewardLevels);
+           crossedLevels = Simulations.combvec(congruencyLevels, rewardLevels);
            trialsPerCell = floor(this.nTrials/size(crossedLevels,2));
            sequence = repmat(crossedLevels, 1, trialsPerCell);
 
