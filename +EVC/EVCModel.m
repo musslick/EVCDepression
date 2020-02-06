@@ -118,7 +118,7 @@ classdef EVCModel < handle
                 if(idx == 1)
                     signalCombs = this.System.CtrlSignals(currentSigIdx).IntensityRange;
                 else
-                    signalCombs = combvec(signalCombs, this.System.CtrlSignals(currentSigIdx).IntensityRange);
+                    signalCombs = Simulations.combvec(signalCombs, this.System.CtrlSignals(currentSigIdx).IntensityRange);
                 end                    
             end
 
@@ -342,7 +342,7 @@ classdef EVCModel < handle
         
         % returns the expected value of control based on the current
         % environmental state and the system's current control signal(s)
-        function [EVC Cost expectedValue performance] = getEVC(this)
+        function [EVC_val Cost expectedValue performance] = getEVC(this)
             [ST,I] = dbstack; % track function name for debugging functions
             source = ST.name;
              
@@ -358,9 +358,9 @@ classdef EVCModel < handle
             Cost = this.getCCost() + this.getReconfCost();
             
             % expected value of control
-            EVC = expectedValue - Cost; % expected value of control
+            EVC_val = expectedValue - Cost; % expected value of control
 
-            HelperFnc.disp(source, 'EVC', EVC, 'outcomes', performance, 'Costs'); % DIAGNOSIS
+            HelperFnc.disp(source, 'EVC', EVC_val, 'outcomes', performance, 'Costs'); % DIAGNOSIS
             
         end
        
@@ -732,11 +732,11 @@ classdef EVCModel < handle
             this.useActualState = 1;
             
             % retrieve actual outcomes
-            [EVC, Cost, EV, actualPerformance] = this.getEVC();
+            [EVC_val, Cost, EV, actualPerformance] = this.getEVC();
             
             
             this.State.Actual.performance = actualPerformance;
-            this.State.Actual.performance.EVC = EVC;
+            this.State.Actual.performance.EVC = EVC_val;
             this.State.Actual.performance.EV = EV;
             this.State.Actual.performance.Cost = Cost;
 %             this.State.Actual.probs = actualProbs;
