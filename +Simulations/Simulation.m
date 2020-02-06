@@ -222,7 +222,7 @@ classdef Simulation < handle
             this.logVarNames{11} = 'ControlParamType';
             this.logVarNames{12} = 'ControlParamVal';
             this.logVarNames{13} = 'CtrlIntensities';
-            this.logVarNames{14} = 'ACC_BOLD';
+            this.logVarNames{14} = 'ACC_HypotheticalBOLD';
 
             this.logAddVars{1}     = 'transpose([this.EVCM.Log.Trials.typeID])';
             this.logAddVarNames{1} =  'TrialType';
